@@ -67,7 +67,7 @@ class History(object):
     # The fields kept for the history, add any if needed
     COL_NAMES = ["user_id", "ts_listen", "media_id", "artist_id", "is_listened"]
 
-    def dump(path):
+    def dump(self, path):
         with open(path, "w") as f:
             json.dump(self.history, f)
 
@@ -173,6 +173,9 @@ if __name__ == "__main__":
     nb_users = 100
     hist = History(users=train.user_id.unique()[:nb_users])
     hist.fit(train)
+
+    # Save the instance
+    hist.dump("Users/mohamed/Documents/GitHub/data/history_100_users.json")
 
     # Multiprocessing
     #hist.fit_multiproc(train, cores=4)
