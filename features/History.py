@@ -144,6 +144,7 @@ class History(object):
         user_history = self.history[id]
         if start_date is not None and end_date is not None:
             user_history = self.get_current_history(id, start_date, end_date)
+        user_history = user_history[user_history.is_listened == 1]
         ranking = Counter(user_history[id]["media_id"].values).most_common(n)
         return [t[0] for t in ranking]
 
@@ -159,6 +160,7 @@ class History(object):
         user_history = self.history[id]
         if start_date is not None and end_date is not None:
             user_history = self.get_current_history(id, start_date, end_date)
+        user_history = user_history[user_history.is_listened == 1]
         ranking = Counter(user_history["artist_id"].values).most_common(n)
         return [t[0] for t in ranking]
 
