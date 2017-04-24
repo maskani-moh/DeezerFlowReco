@@ -60,15 +60,21 @@ class History(object):
             self.history = dict()
         else:
             with open(path, "r") as f:
-                self.history = json.load(f)
+                json_history = json.load(f)
+                json_history = map(lambda d: (d["id"], d["history"][0]),
+                                   json_history)
+                self.history = {int(k): pd.read_json(v) for k, v in
+                                json_history}
             self.users = [k for k in self.history]
 
     # The fields kept for the history, add any if needed
     COL_NAMES = ["user_id", "ts_listen", "media_id", "artist_id", "is_listened"]
 
     def dump(self, path):
+        serializable_history = [{"id": str(k), "history": [
+            self.history[k].to_json(path_or_buf=None)]} for k in self.history]
         with open(path, "w") as f:
-            json.dump(self.history, f)
+            json.dump(serializable_history, f)
 
     def fit_multiproc(self, data, cores=4):
         """
@@ -178,6 +184,9 @@ if __name__ == "__main__":
 
     # Save the instance
     hist.dump("Users/mohamed/Documents/GitHub/data/history_100_users.json")
+
+    # Load from existing json file
+    hist_loaded = History(path="Users/mohamed/Documents/GitHub/data/history_100_users.json")
 
     # Multiprocessing
     #hist.fit_multiproc(train, cores=4)
