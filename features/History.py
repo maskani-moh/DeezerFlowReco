@@ -33,14 +33,13 @@ def date_format(input_date):
         raise(TypeError, "the input to date_formats should be of type basestring, datetime.datetime or int/long")
     return ts, dt, st
 
-def agg(id, data):
+def agg(id, data_by_user):
     """
     Intermediary function used for multiprocessing
     """
-    df_by_user = data.groupby("user_id").get_group(id).drop("user_id",axis=1)
-    df_by_user.sort(columns=['ts_listen'], ascending=False,
-                    inplace=True)
-    return id, df_by_user
+    df_user = data_by_user.get_group(id).drop("user_id",axis=1)
+    df_user.sort(columns=['ts_listen'], ascending=False, inplace=True)
+    return id, df_user
 
 #########################
 #     History Class     #
@@ -85,10 +84,11 @@ class History(object):
                 "The dataframe must contain the fields: " + self.COL_NAMES)
 
         data = data[self.COL_NAMES]
+        data_by_user = data.groupby("user_id")
 
         # Multithreaded computing
         p = Pool(cores)  # swith to max_cores
-        tmp = p.map(lambda x: agg(x, data), self.users)
+        tmp = p.map(lambda x: agg(x, data_by_user), self.users)
         p.close()
 
         # Update attribute
@@ -109,14 +109,14 @@ class History(object):
                 "The dataframe must contain the fields: " + self.COL_NAMES)
 
         data = data[self.COL_NAMES]
+        data_by_user = data.groupby("user_id")
 
         # Update attribute
         for id in self.users:
-            df_by_user = data.groupby("user_id").get_group(id).drop("user_id",
-                                                                    axis=1)
-            df_by_user.sort(columns=['ts_listen'], ascending=False,
+            df_user = data_by_user.get_group(id).drop("user_id", axis=1)
+            df_user.sort(columns=['ts_listen'], ascending=False,
                             inplace=True)
-            self.history[id] = df_by_user
+            self.history[id] = df_user
 
     def get_current_history(self, id, start_date, end_date):
         """
