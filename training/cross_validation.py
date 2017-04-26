@@ -3,7 +3,13 @@ import pandas as pd
 import numpy as np
 
 
-def train_test_split(data):
+def chunks(l, n):
+    """Yield successive n-sized chunks from l."""
+    for i in range(0, len(l), n):
+        yield l[i:i + n]
+
+
+def train_test_split(data, n_splits=2):
     """
     This function creates a set for cross-validation
     :param data: pd.DataFrame
@@ -16,11 +22,11 @@ def train_test_split(data):
     data_by_user = data.groupby("user_id")
     user_ids = np.unique(data.user_id.values)
 
-    idx_train = np.empty((0,), dtype='int64')
-    idx_test = np.empty((0,), dtype='int64')
+    idx_train = [np.empty((0,), dtype='int64') for i in range(n_splits)]
+    idx_test = [np.empty((0,), dtype='int64') for i in range(n_splits)]
 
     timestamps = data.ts_listen.values
-    timeframes = [(0,0)] * np.max(user_ids)
+    timeframes = [[(0,0)] * np.max(user_ids) for i in range(n_splits)]
 
     for user_id in user_ids:
         df_user = data_by_user.get_group(user_id)
@@ -32,29 +38,52 @@ def train_test_split(data):
         idx = df_user.index[sort_index]
 
         # eache user has a different train_length
-        n_train_samples = int(len(user_values) / 2)
+        n_train_samples = int(np.ceil(len(user_values) / n_splits))
+        
+        idx_chunks = chunks(range(len(user_values)), n_train_samples)
+        train_chunks = []
+        test_chunks = []
+        ts_chunks = []
 
-        # TODO: try different strategies when there is not enough samples to
-        # put in train and test
-        if n_train_samples == 0:
+        for chunk in idx_chunks:
+            # last chunk should be shifted to the left
+            if chunk[-1] == len(user_values) - 1 and len(chunk) > 1:
+                ts_chunks.append([idx[chunk[0]], idx[chunk[-2]]])
+                train_chunks.append(idx[chunk[0:-1]])
+                test_chunks.append(idx[chunk[-1]])
+                
+            # not enough samples to create a train and test set
+            elif chunk[-1] == len(user_values) - 1:
+                continue
+            
+            else:
+                ts_chunks.append([idx[chunk[0]], idx[chunk[-1]]])
+                train_chunks.append(idx[chunk])
+                test_chunks.append(idx[chunk[-1] + 1])
+
+  
+        # users with not enough samples are ignored
+        if len(train_chunks) < n_splits:
             continue
 
-        timeframes[user_id] = (timestamps[idx[0]], timestamps[idx[n_train_samples - 1]])
+        for i in range(n_splits):
+            timeframes[i][user_id] = (timestamps[ts_chunks[i][0]],
+                                      timestamps[ts_chunks[i][1]])
 
-        idx_train = np.concatenate((idx_train, idx[:n_train_samples]), axis=0)
-        idx_test = np.concatenate((idx_test,
-                                   np.asarray(idx[n_train_samples]).reshape((1,))),
-                                  axis=0)
+            idx_train[i] = np.concatenate((idx_train[i], train_chunks[i]),
+                                          axis=0)
+            idx_test[i] = np.concatenate((idx_test[i],
+                                       np.asarray(test_chunks[i]).reshape((1,))),
+                                       axis=0)
 
-    return data.iloc[idx_train], data.iloc[idx_test], timeframes
+    return [(data.iloc[idx_train[i]], data.iloc[idx_test[i]], timeframes[i]) for i in range(n_splits)]
 
 
 def check_timeframes(timeframes, test):
-    """ Test for the generated sets
+    """ Tests for the generated sets
     """
     user_ids = test.user_id.values
     ts = test.ts_listen.values
-    
     for i in range(len(user_ids)):
         user_id = user_ids[i]
         ts_listen = ts[i]
@@ -65,8 +94,9 @@ def check_timeframes(timeframes, test):
 
 
 if __name__ == '__main__':
-    df = pd.read_csv('../data/mini-train.csv')
-    train, test, timeframes = train_test_split(df)
+    df = pd.read_csv('../data/train.csv')
+    result = train_test_split(df, n_splits=3)
     
-    # Test timeframes
-    check_timeframes(timeframes, test)
+    # Test timeframes and test set
+    for train, test, timeframe in result:
+        check_timeframes(timeframe, test)
