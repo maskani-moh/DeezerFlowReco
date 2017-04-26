@@ -27,3 +27,22 @@ vect.fit_transform(data, transforms) # data being your training dataframe
 ```
 
 This will update the dataframe `data` by adding the defined **cross-features**.
+
+## Hasher
+
+This class was implemented in order to transform a dataframe into a sparse matrix.
+
+The `Hasher` instance must be applied to your **final dataframe** (*i.e.* processed + cross-features).
+
+The sparse matrix obtained must be used as the **input of your model** (Logistic Regression, ...).
+
+Here is ahow to make use of it:
+
+```
+my_hash = Hasher(size=100000) # size being the size of your sparse vectors
+                              # make sure to take a big number to avoid collisions
+
+X_sparse = my_hash.fit_transform(data) # obtain sparse matrix (does not contain labels Y)
+```
+
+**VERY IMPORTANT**: **DO NOT APPLY** `.toarray()` **ON YOUR SPARSE MATRIX**. **HIGH RISK OF MEMORY ISSUE**.
