@@ -5,6 +5,7 @@ import sys
 
 MAX_SIZE = sys.maxsize
 
+
 class Hasher():
     def __init__(self, data=None, size=MAX_SIZE, hash=None):
         """
@@ -35,9 +36,11 @@ class Hasher():
         """
         if self.hash is None:
             # Use python built-in hash function
-            hashed_values = list(map(lambda x: hash(str(x)) % self.size, row.values))
+            hashed_values = list(
+                map(lambda x: hash(str(x)) % self.size, list(row)))
         else:
-            hashed_values = list(map(lambda x: self.hash(str(x)) % self.size, row.values))
+            hashed_values = list(
+                map(lambda x: self.hash(str(x)) % self.size, list(row)))
         return hashed_values
 
     def sparsify(self, row):
@@ -46,26 +49,28 @@ class Hasher():
         :param row: list, array | a given row of self.data
         :return: 2-tuple | tuple containing (positions_active_vales, active_values)
         """
-        return (self.hash_row(row), [1.0]*len(row))
+        return (self.hash_row(row), [1.0] * len(row))
 
     def transform(self, data):
         """
         Creates a sparse matrix from data
+        data MUST NOT contain the labels
         :param data: pd.DataFrame | dataframe to sparsify
         :return: scipy.csr_matrix | sparse matrix of shape (data.shape[0], self.size)
         """
         curr_csr_matrix = csr_matrix((data.shape[0], self.size))
 
-        for i, row in enumerate(data): # TODO: verify that it takes row by row
+        for row in data.itertuples():
+            i, row = row[0], row[1:]
             sparse_row = self.sparsify(row)
-            # TODO: check if it sums correctly
-            curr_csr_matrix = curr_csr_matrix + csr_matrix((sparse_row[0], ([i]*len(row), sparse_row[1])),
-                                                           shape=curr_csr_matrix.shape)
+            curr_csr_matrix = curr_csr_matrix + csr_matrix(
+                (sparse_row[0], ([i] * len(row), sparse_row[1])),
+                shape=curr_csr_matrix.shape)
         return curr_csr_matrix
 
     def fit_transform(self, data):
         self.fit(data)
-        return self.fit_transform(self.data)
+        return self.transform(self.data)
 
 
 if __name__ ==  "__main__":
