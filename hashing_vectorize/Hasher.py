@@ -1,9 +1,10 @@
 import numpy as np
 import pandas as pd
+from multiprocess import Pool
 from scipy.sparse import csr_matrix
 import sys
 
-MAX_SIZE = sys.maxsize
+MAX_SIZE = 1000000  # sys.maxsize throws an error when transforming the data
 
 
 class Hasher():
@@ -49,9 +50,10 @@ class Hasher():
         :param row: list, array | a given row of self.data
         :return: 2-tuple | tuple containing (positions_active_vales, active_values)
         """
+        # TODO: change if you want to take into account continuous values
         return (self.hash_row(row), [1.0] * len(row))
 
-    def transform(self, data):
+    def transform(self, data, cores=1):
         """
         Creates a sparse matrix from data
         data MUST NOT contain the labels
@@ -60,12 +62,28 @@ class Hasher():
         """
         curr_csr_matrix = csr_matrix((data.shape[0], self.size))
 
-        for row in data.itertuples():
-            i, row = row[0], row[1:]
-            sparse_row = self.sparsify(row)
-            curr_csr_matrix = curr_csr_matrix + csr_matrix(
-                (sparse_row[0], ([i] * len(row), sparse_row[1])),
-                shape=curr_csr_matrix.shape)
+        if cores > 1:
+            # Multithreaded computing
+            def _get_crs_mat(row):
+                i, row = row[0], row[1:]
+                sparse_row = self.sparsify(row)
+                row_csr_matrix = csr_matrix(
+                    (sparse_row[0], ([i] * len(row), sparse_row[1])),
+                    shape=curr_csr_matrix.shape)
+                return row_csr_matrix
+
+            matrix_list = Pool(cores).map(lambda row: _get_crs_mat(row),
+                                          data.itertuples())
+            curr_csr_matrix = sum(matrix_list)
+
+        else:
+            for row in data.itertuples():
+                i, row = row[0], row[1:]
+                sparse_row = self.sparsify(row)
+                curr_csr_matrix = curr_csr_matrix + csr_matrix(
+                    (sparse_row[0], ([i] * len(row), sparse_row[1])),
+                    shape=curr_csr_matrix.shape)
+
         return curr_csr_matrix
 
     def fit_transform(self, data):
