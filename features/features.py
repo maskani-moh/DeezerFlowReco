@@ -195,43 +195,87 @@ def get_track_tempo(tracks_df, track_id):
     return bucket
 
 def track_was_previously_listened(history, track_id, user_id):
-    # Check in history
-    pass
+    """
+    Checks whether a track has already been listened by a user
+    :param history: History instance | history of all users between two dates
+    :param track_id: int | id of track
+    :param user_id: int | user id
+    :return: boolean | True if track already listened, else False
+    """
 
-def is_top_n_track(history, user_id, track_id):
-    # whether artist is in user's top N artists
-    pass
+    user_history = history.history[user_id]
+    tracks_list = user_history[user_history.is_listened == 1]['media_id'].values
+
+    return track_id in tracks_list
+
+def is_top_n_track(history, track_id, user_id, n=10):
+    """
+    Checks whether a track is in user's favorite tracks
+    :param history: History instance | history of all users between two dates
+    :param user_id: int | user id
+    :param track_id: int | id of track
+    :param n: int | number of top tracks
+    :return: boolean | True if track in user's top N tracks, else False
+    """
+
+    top_n_tracks = history.get_top_tracks(user_id, n)
+    return track_id in top_n_tracks
 
 def similar_to_previously_listened_track():
+    # TODO: to implement
     pass
 
 def number_of_similar_tracks_listened_to_in_the_last_hour():
+    # TODO: to implement
     pass
 
 def track_was_listened_by_cluster():
     # track listened by someone similar to current user
+    # TODO: to implement
     pass
 
 def get_lower_genre():
     # number of genre-id too big
     # can be too specific
+    # TODO: to implement
     pass
 
 """
 Artist features
 """
 
-def artist_was_previously_listened():
-    # Check in history
-    pass
+def artist_was_previously_listened(history, user_id, artist_id):
+    """
+    Checks whether an artist has already been listened by a user
+    :param history: History instance | history of all users between two dates
+    :param artist_id: int | id of artist
+    :param user_id: int | user id
+    :return: boolean | True if track already listened, else False
+    """
+
+    user_history = history.history[user_id]
+    artists = user_history[user_history.is_listened == 1]['artist_id'].values
+
+    return artist_id in artists
 
 def artist_was_listened_by_cluster():
     # track listened by someone similar to current user
+    # TODO: to implement
     pass
 
-def is_top_n_artist(history, user_id, artist_id):
-    # whether artist is in user's top N artists
-    pass
+def is_top_n_artist(history, user_id, artist_id, n=10):
+    """
+    Checks whether an artist is in user's favorite artists
+    :param history: History instance | history of all users between two dates
+    :param user_id: int | user id
+    :param artist_id: int | id of artist
+    :param n: int | number of top tracks
+    :return: boolean | True if artist in user's top N artists, else False
+    """
+
+    top_n_artists = history.get_top_artists(user_id, n)
+    return artist_id in top_n_artists
 
 def number_of_times_listened_to_artist_in_last_hour():
+    # TODO: to implement
     pass
