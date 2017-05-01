@@ -30,7 +30,7 @@ def date_format(input_date):
         ts = input_date
         st = str(dt)
     else:
-        raise(TypeError, "the input to date_formats should be of type basestring, datetime.datetime or int/long")
+        raise TypeError("the input to date_formats should be of type basestring, datetime.datetime or int/long")
     return ts, dt, st
 
 def agg(id, data_by_user):

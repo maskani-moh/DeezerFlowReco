@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import json
 
-from .History import date_format, History
+from .History import date_format
 
 """
 General features
@@ -208,7 +208,7 @@ def track_was_previously_listened(history, track_id, user_id):
 
     return track_id in tracks_list
 
-def is_top_n_track(history, track_id, user_id, n=10):
+def is_top_n_track(history, user_id, track_id, n=10):
     """
     Checks whether a track is in user's favorite tracks
     :param history: History instance | history of all users between two dates
