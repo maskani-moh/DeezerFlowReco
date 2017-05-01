@@ -18,12 +18,25 @@ class BaselineCF():
         self.media_dict = media_dict
         
     def predict(self, X):
-        user_mean = X['user_id'].map(self.user_dict)
-        media_mean = X['media_id'].map(self.media_dict)
+        user_mean = X['user_id'].map(self.user_dict).fillna(0) # Fillna should not be necessary
+        # Fill missing media_mean with 0
+        media_mean = X['media_id'].map(self.media_dict).fillna(0)
         
+        # Better way to treat missing media_id would be to
+        # match with existing albums, genres etc.
+        # unmatched_2 = test_cv_2[~test_cv_2['media_id'].isin(train_cv['media_id'])]
+        # Album id then genre_id
+        # unmatched_2['genre_id'].isin(train_cv['genre_id']).mean()
+        # np.isnan(test_cv_2['media_mean']).mean()
+
         # User preference + media popularity - average of is_listened
         y_pred = user_mean + media_mean - self.listen_average
         
-        # Normalise to [0, 1]
+        #####
+        # To do: find better normalisation
+        #####
+        
+        # Normalise to [0, 1] doesn't change a lot with logit function
         y_pred = (y_pred - y_pred.min()) / (y_pred.max() - y_pred.min())
+        #y_pred = 1 / (1 + np.exp(-y_pred))
         return y_pred
