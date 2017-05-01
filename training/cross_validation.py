@@ -40,6 +40,9 @@ def train_test_split(data, n_splits=2):
         # eache user has a different train_length
         n_train_samples = int(np.ceil(len(user_values) / n_splits))
         
+        if n_train_samples == 0:
+            continue
+
         idx_chunks = chunks(range(len(user_values)), n_train_samples)
         train_chunks = []
         test_chunks = []
@@ -94,7 +97,7 @@ def check_timeframes(timeframes, test):
 
 
 if __name__ == '__main__':
-    df = pd.read_csv('../data/train.csv')
+    df = pd.read_csv('../data/mini-train.csv')
     result = train_test_split(df, n_splits=3)
     
     # Test timeframes and test set
