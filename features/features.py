@@ -19,8 +19,8 @@ def get_moment_of_day(ts_listen):
         "early_morning": (6, 8),
         "morning": (9, 12),
         "day": (12, 17),
-        "evening": (17, 22),
-        "late_night": (23, 5)
+        "evening": (17, 23),
+        "late_night": (0, 5)
     }
 
     # Get the hour of listening
@@ -128,7 +128,7 @@ def is_new_track(track_release_date, ts_listen):
     """
 
     year_release = track_release_date // 10000
-    year_listen = date_format(ts_listen).year
+    year_listen = date_format(ts_listen)[1].year
 
     if year_release == year_listen:
         return True
@@ -240,8 +240,14 @@ def get_genre(album_genres_df, album_id):
     Up to 45 genres
     :param album_genres_df: pd.DataFrame | dataframe mapping each album to a genre
     :param album_id: int | album id
-    :return:
+    :return: string | track genre
     """
+    # Some checks
+    if album_id not in album_genres_df.album_id:
+        return 'Unknown'
+    if len(album_genres_df[album_genres_df.album_id == album_id].new_genre_name.values) == 0:
+        return 'Unknown'
+
     return album_genres_df[album_genres_df.album_id == album_id].new_genre_name.values[0]
 
 

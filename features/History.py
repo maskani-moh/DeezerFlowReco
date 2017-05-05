@@ -1,5 +1,6 @@
 import json
 import pandas as pd
+import numpy as np
 from collections import Counter
 from datetime import datetime
 from multiprocess import Pool
@@ -24,7 +25,7 @@ def date_format(input_date):
         dt = input_date
         ts = int(calendar.timegm(dt.utctimetuple()))
         st = str(dt)
-    elif isinstance(input_date, (int, float)):
+    elif isinstance(input_date, (int, float, np.int64)):
         input_date = int(round(input_date))
         dt = datetime.utcfromtimestamp(input_date)
         ts = input_date
