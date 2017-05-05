@@ -234,11 +234,35 @@ def track_was_listened_by_cluster():
     # TODO: to implement
     pass
 
-def get_lower_genre():
-    # number of genre-id too big
-    # can be too specific
-    # TODO: to implement
-    pass
+def get_genre(album_genres_df, album_id):
+    """
+    Get the genre of album (by extension that of the song)
+    Up to 45 genres
+    :param album_genres_df: pd.DataFrame | dataframe mapping each album to a genre
+    :param album_id: int | album id
+    :return:
+    """
+    return album_genres_df[album_genres_df.album_id == album_id].new_genre_name.values[0]
+
+
+def categorise_media_duration(df):
+    """
+    Create very short/short/medium/long categories with media_duration
+
+    Parameters
+    ----------
+    df: pd.DataFrame | contains a column media_duration
+    """
+
+    # Very short song
+    df['media_duration_categ'] = 0
+
+    # Short song
+    df.loc[df['media_duration'] > 150, 'media_duration_categ'] = 1
+    # Medium song
+    df.loc[df['media_duration'] > 210, 'media_duration_categ'] = 2
+    # Long song
+    df.loc[df['media_duration'] > 300, 'media_duration_categ'] = 3
 
 """
 Artist features
