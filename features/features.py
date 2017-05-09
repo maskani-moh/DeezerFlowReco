@@ -160,6 +160,9 @@ def get_ranking_bucket(tracks_df, track_id):
     }
 
     # Get ranking from tracks dataframe
+    if len(tracks_df[tracks_df['id'] == track_id]['rank'].values) == 0:
+        return "not_famous"
+
     rank = tracks_df[tracks_df['id'] == track_id]['rank'].values[0]
 
     # Get bucket
@@ -251,7 +254,7 @@ def get_genre(album_genres_df, album_id):
     return album_genres_df[album_genres_df.album_id == album_id].new_genre_name.values[0]
 
 
-def categorise_media_duration(df):
+def get_media_duration_bucket(media_duration):
     """
     Create very short/short/medium/long categories with media_duration
 
@@ -260,15 +263,17 @@ def categorise_media_duration(df):
     df: pd.DataFrame | contains a column media_duration
     """
 
-    # Very short song
-    df['media_duration_categ'] = 0
+    BUCKET_DURATION = {
+        "very_short_duration": (0, 150),
+        "short_duration": (151, 209),
+        "medium_duration": (210, 299),
+        "long_duration": (300, 10000)
+    }
 
-    # Short song
-    df.loc[df['media_duration'] > 150, 'media_duration_categ'] = 1
-    # Medium song
-    df.loc[df['media_duration'] > 210, 'media_duration_categ'] = 2
-    # Long song
-    df.loc[df['media_duration'] > 300, 'media_duration_categ'] = 3
+    # Get bucket
+    bucket = [k for (k, v) in BUCKET_DURATION.items() if v[0] <= media_duration <= v[1]][0]
+
+    return bucket
 
 """
 Artist features
