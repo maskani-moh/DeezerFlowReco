@@ -86,9 +86,9 @@ class Hasher():
 
         return curr_csr_matrix
 
-    def fit_transform(self, data):
+    def fit_transform(self, data, cores=1):
         self.fit(data)
-        return self.transform(self.data)
+        return self.transform(self.data, cores=cores)
 
 
 if __name__ ==  "__main__":

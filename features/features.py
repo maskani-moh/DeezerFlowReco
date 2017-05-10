@@ -19,8 +19,8 @@ def get_moment_of_day(ts_listen):
         "early_morning": (6, 8),
         "morning": (9, 12),
         "day": (12, 17),
-        "evening": (17, 22),
-        "late_night": (23, 5)
+        "evening": (17, 23),
+        "late_night": (0, 5)
     }
 
     # Get the hour of listening
@@ -128,7 +128,7 @@ def is_new_track(track_release_date, ts_listen):
     """
 
     year_release = track_release_date // 10000
-    year_listen = date_format(ts_listen).year
+    year_listen = date_format(ts_listen)[1].year
 
     if year_release == year_listen:
         return True
@@ -160,6 +160,9 @@ def get_ranking_bucket(tracks_df, track_id):
     }
 
     # Get ranking from tracks dataframe
+    if len(tracks_df[tracks_df['id'] == track_id]['rank'].values) == 0:
+        return "not_famous"
+
     rank = tracks_df[tracks_df['id'] == track_id]['rank'].values[0]
 
     # Get bucket
@@ -179,7 +182,7 @@ def get_track_tempo(tracks_df, track_id):
     # TODO: Make sure that the track dataframe does not contain bpm with value 0
     # TODO: adjust to be more specific if needed
     BUCKET_BPM = {
-        "very_slow" : (25, 65),
+        "very_slow" : (0, 65),
         "slow" : (66, 80),
         "moderate" : (81, 99),
         "fast" : (100, 120),
@@ -187,7 +190,11 @@ def get_track_tempo(tracks_df, track_id):
     }
 
     # Get bpm from tracks dataframe
+    if len(tracks_df[tracks_df['id'] == track_id]['bpm'].values) == 0:
+        return 'Unknown'
+
     bpm = tracks_df[tracks_df['id'] == track_id]['bpm'].values[0]
+    bpm = round(bpm)
 
     # Get bucket
     bucket = [k for (k, v) in BUCKET_BPM.items() if v[0] <= bpm <= v[1]][0]
@@ -234,11 +241,45 @@ def track_was_listened_by_cluster():
     # TODO: to implement
     pass
 
-def get_lower_genre():
-    # number of genre-id too big
-    # can be too specific
-    # TODO: to implement
-    pass
+def get_genre(album_genres_df, album_id):
+    """
+    Get the genre of album (by extension that of the song)
+    Up to 45 genres
+    :param album_genres_df: pd.DataFrame | dataframe mapping each album to a genre
+    :param album_id: int | album id
+    :return: string | track genre
+    """
+    # Some checks
+    if album_id not in album_genres_df.album_id:
+        return 'Unknown'
+    if len(album_genres_df[album_genres_df.album_id == album_id].new_genre_name.values) == 0:
+        return 'Unknown'
+
+    return album_genres_df[album_genres_df.album_id == album_id].new_genre_name.values[0]
+
+
+def get_media_duration_bucket(media_duration):
+    """
+    Create very short/short/medium/long categories with media_duration
+
+    Parameters
+    ----------
+    df: pd.DataFrame | contains a column media_duration
+    """
+
+    BUCKET_DURATION = {
+        "very_short_duration": (0, 150),
+        "short_duration": (151, 209),
+        "medium_duration": (210, 299),
+        "long_duration": (300, 10000)
+    }
+
+    media_duration = round(media_duration)
+
+    # Get bucket
+    bucket = [k for (k, v) in BUCKET_DURATION.items() if v[0] <= media_duration <= v[1]][0]
+
+    return bucket
 
 """
 Artist features
