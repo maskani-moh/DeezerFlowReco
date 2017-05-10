@@ -182,7 +182,7 @@ def get_track_tempo(tracks_df, track_id):
     # TODO: Make sure that the track dataframe does not contain bpm with value 0
     # TODO: adjust to be more specific if needed
     BUCKET_BPM = {
-        "very_slow" : (25, 65),
+        "very_slow" : (0, 65),
         "slow" : (66, 80),
         "moderate" : (81, 99),
         "fast" : (100, 120),
@@ -190,7 +190,11 @@ def get_track_tempo(tracks_df, track_id):
     }
 
     # Get bpm from tracks dataframe
+    if len(tracks_df[tracks_df['id'] == track_id]['bpm'].values) == 0:
+        return 'Unknown'
+
     bpm = tracks_df[tracks_df['id'] == track_id]['bpm'].values[0]
+    bpm = round(bpm)
 
     # Get bucket
     bucket = [k for (k, v) in BUCKET_BPM.items() if v[0] <= bpm <= v[1]][0]
@@ -269,6 +273,8 @@ def get_media_duration_bucket(media_duration):
         "medium_duration": (210, 299),
         "long_duration": (300, 10000)
     }
+
+    media_duration = round(media_duration)
 
     # Get bucket
     bucket = [k for (k, v) in BUCKET_DURATION.items() if v[0] <= media_duration <= v[1]][0]
