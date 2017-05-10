@@ -68,7 +68,7 @@ class Hasher():
                 i, row = row[0], row[1:]
                 sparse_row = self.sparsify(row)
                 row_csr_matrix = csr_matrix(
-                    (sparse_row[0], ([i] * len(row), sparse_row[1])),
+                    (sparse_row[1], ([i] * len(row), sparse_row[0])),
                     shape=curr_csr_matrix.shape)
                 return row_csr_matrix
 
@@ -81,7 +81,7 @@ class Hasher():
                 i, row = row[0], row[1:]
                 sparse_row = self.sparsify(row)
                 curr_csr_matrix = curr_csr_matrix + csr_matrix(
-                    (sparse_row[0], ([i] * len(row), sparse_row[1])),
+                    (sparse_row[1], ([i] * len(row), sparse_row[0])),
                     shape=curr_csr_matrix.shape)
 
         return curr_csr_matrix
