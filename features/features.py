@@ -277,6 +277,9 @@ def get_media_duration_bucket(media_duration):
     media_duration = round(media_duration)
 
     # Get bucket
+    if len([k for (k, v) in BUCKET_DURATION.items() if v[0] <= media_duration <= v[1]]) == 0:
+        return "medium_duration"
+
     bucket = [k for (k, v) in BUCKET_DURATION.items() if v[0] <= media_duration <= v[1]][0]
 
     return bucket
