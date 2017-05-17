@@ -22,8 +22,8 @@ def train_test_split(data, n_splits=2):
     data_by_user = data.groupby("user_id")
     user_ids = np.unique(data.user_id.values)
 
-    idx_train = [np.empty((0,), dtype='int64') for i in range(n_splits)]
-    idx_test = [np.empty((0,), dtype='int64') for i in range(n_splits)]
+    idx_train = [[] for i in range(n_splits)]
+    idx_test = [[] for i in range(n_splits)]
 
     timestamps = data.ts_listen.values
     timeframes = [[(0,0)] * np.max(user_ids) for i in range(n_splits)]
@@ -73,13 +73,14 @@ def train_test_split(data, n_splits=2):
             timeframes[i][user_id] = (timestamps[ts_chunks[i][0]],
                                       timestamps[ts_chunks[i][1]])
 
-            idx_train[i] = np.concatenate((idx_train[i], train_chunks[i]),
-                                          axis=0)
-            idx_test[i] = np.concatenate((idx_test[i],
-                                       np.asarray(test_chunks[i]).reshape((1,))),
-                                       axis=0)
+            idx_train[i].extend(train_chunks[i].tolist())
+            idx_test[i].extend([test_chunks[i]])
 
-    return [(data.iloc[idx_train[i]], data.iloc[idx_test[i]], timeframes[i]) for i in range(n_splits)]
+    for i in range(n_splits):
+        idx_train[i] = np.asarray(idx_train[i], dtype='int64')
+        idx_test[i] = np.asarray(idx_test[i], dtype='int64')
+
+    return [(data.ix[idx_train[i]], data.ix[idx_test[i]], timeframes[i]) for i in range(n_splits)]
 
 
 def check_timeframes(timeframes, test):
